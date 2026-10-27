@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>生活健康导航 - 就医、心理、政务与维权网址分类</title>
+<meta name="description" content="按分类整理的生活与健康网址：就医用药、健康科普、心理情绪、健身营养、政务办事、法律维权、生活服务与安全隐私，支持站内查找和本地收藏。含成人内容分区，仅限 18 周岁及以上访问。">
+
+<!-- ↓ 镜像站取消这一行注释，主力站保持注释。详见 README.md
+     只开 noindex,follow。别再加指向别处的 canonical：
+     两个信号矛盾，canonical 会把 noindex 一并传过去。 -->
+<!-- <meta name="robots" content="noindex,follow"> -->
+
+<meta property="og:type" content="website">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="生活健康导航 - 就医、心理、政务与维权网址分类">
+<meta property="og:description" content="就医、心理、健身、政务、维权与安全的分类网址，支持站内查找和本地收藏。">
+<meta name="referrer" content="no-referrer-when-downgrade">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 脚本没起来时的兜底。app.js 一启动就会把它藏掉。
+     noscript 只管「禁用了 JS」，管不了「JS 开着但 app.js 被拦截」。 -->
+<div class="boot">
+  <h2>页面没能加载完整</h2>
+  <p>刷新一下通常就好。如果反复这样，可能是拦截插件挡掉了本页的脚本。</p>
+</div>
+
+<noscript>
+  <div class="boot">
+    <h2>需要开启 JavaScript</h2>
+    <p>本页的分类切换和查找功能依赖脚本。</p>
+  </div>
+</noscript>
+
+<div id="shell" class="shell" hidden>
+
+  <header class="masthead">
+    <div class="brand">
+      <h1 class="brand-name" id="brand-name">生活健康导航</h1>
+      <p class="brand-tag" id="brand-tag"></p>
+    </div>
+
+    <div class="tools">
+      <form id="find-form" class="find" role="search">
+        <label class="sr-only" for="engine">查找方式</label>
+        <select id="engine">
+          <option value="local">站内查找</option>
+          <option value="baidu">百度</option>
+          <option value="bing">Bing</option>
+          <option value="google">Google</option>
+        </select>
+        <label class="sr-only" for="find">关键词</label>
+        <input id="find" type="search" placeholder="按 / 开始查找" autocomplete="off" spellcheck="false">
+        <button type="submit">查找</button>
+      </form>
+      <!-- aria-label 必须包含可见文字「切换主题」，
+           否则语音控制念可见文字匹配不上（WCAG 2.5.3）。 -->
+      <button type="button" id="theme" class="theme" aria-label="切换主题">切换主题</button>
+    </div>
+  </header>
+
+  <div class="body" id="layout">
+    <!-- 真正的标签页：一次只显示一个分类的面板，
+         不是锚点滚动。键盘方向键可在标签间移动。
+         aria-orientation 由 app.js 按断点更新：窄屏下标签是横排的。 -->
+    <div id="tablist" class="tablist" role="tablist" aria-orientation="vertical" aria-label="分类"></div>
+
+    <!-- main 落在这里：标签栏是导航，正文是面板区。
+         少了它读屏器就没有「跳到主内容」的落点。 -->
+    <main class="stage">
+      <div id="panels"></div>
+      <!-- 查找时离开标签模式：藏起标签和面板，改用这块合并结果。
+           否则 tablist 会出现「选中了某个标签但显示着全部面板」
+           的自相矛盾状态。role=region 不能省：
+           aria-label 挂在无 role 的 div 上不会被暴露。 -->
+      <div id="results" role="region" aria-label="查找结果" hidden></div>
+      <p id="empty" class="empty" hidden></p>
+    </main>
+  </div>
+
+  <footer class="foot">
+    <p class="foot-age"><span class="mark">18+</span> 成人内容分区仅限年满 18 周岁者访问</p>
+    <p class="foot-note" id="foot-note"></p>
+    <p class="foot-care">本站只是网址索引，不提供医疗建议。身体不适请就医，紧急情况请拨打 120。</p>
+  </footer>
+</div>
+
+<!-- 成人条目的点击确认。只拦那一条，其余链接照常直达。 -->
+<div id="ask" class="ask" role="dialog" aria-modal="true" aria-labelledby="ask-title" hidden>
+  <div class="ask-panel">
+    <p class="mark-row"><span class="mark">18+</span></p>
+    <h2 id="ask-title">这是成人内容</h2>
+    <p class="ask-body">你正要打开 <span id="ask-name"></span>，内容面向成年人。请确认你已满 18 周岁。</p>
+    <div class="ask-actions">
+      <button type="button" id="ask-ok" class="btn">我已满 18 周岁，继续</button>
+      <button type="button" id="ask-no" class="btn btn-quiet">取消</button>
+    </div>
+    <p class="ask-fine">确认结果只存在这台设备的浏览器里，下次不再询问。</p>
+  </div>
+</div>
+
+<script src="sites.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

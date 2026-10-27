@@ -1,0 +1,4 @@
+# README 不该当站点内容被索引。
+# 仓库本身是公开的，这只是避免它出现在搜索结果里。
+/README.md
+  X-Robots-Tag: noindex

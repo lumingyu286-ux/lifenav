@@ -1,0 +1,455 @@
+/* 生活健康导航 -----------------------------------------------
+   第五套视觉与模板。和前四个项目刻意区分：
+   baike-nav 深李木墨 + 黄铜 + 宋体 + 目录引点线
+   nav-hub   冷灰 + 正红 + 黑体重字 + 大块标识条
+   changyong 深靛蓝 + 青绿 + 左侧栏锚点 + 无框密排
+   zhaizai   浅暖底 + 浓紫 + 顶部分类条 + 有框卡片
+   本站      浅绿白临床配色 + 左侧竖排标签页（一次只显示一个分类）
+
+   前四个都是「一长条滚动，分类只是锚点」。这里是真正的
+   tab 切换：选中哪个分类就只渲染哪个面板。 */
+
+:root {
+  color-scheme: light dark;
+
+  --ground: #F2F4F0;
+  --panel:  #FFFFFF;
+  --ink:    #16211B;
+  --muted:  #51625A;
+  --line:   #D3DBD4;
+  --accent: #1A6344;
+  --on-accent: #FFFFFF;
+
+  --sans: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+}
+
+/* 手动切到浅色时也要显式声明：系统是深色的话，UA 画的滚动条、
+   select 弹出层、搜索框清除按钮会继续用深色，压在白底上看不见。 */
+[data-theme="light"] { color-scheme: light; }
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #121A15;
+  --panel:  #1A241E;
+  --ink:    #E6EBE6;
+  --muted:  #9FB0A4;
+  --line:   #2A382F;
+  --accent: #5FD39B;
+  --on-accent: #0D1A13;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 16px;
+  /* 健康类内容多一点行距，读起来不赶 */
+  line-height: 1.65;
+}
+
+a { color: inherit; text-decoration: none; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.shell[hidden] { display: none; }
+
+/* 报头 ------------------------------------------------------ */
+
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 2.25rem 2rem 1.5rem;
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  margin: 0;
+}
+
+.brand-tag {
+  margin: .25rem 0 0;
+  font-size: .8125rem;
+  color: var(--muted);
+}
+
+.tools { display: flex; align-items: center; gap: .625rem; flex-wrap: wrap; }
+
+.find {
+  display: flex;
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.find:focus-within { border-color: var(--accent); }
+
+.find select, .find input, .find button {
+  font-family: inherit;
+  font-size: .875rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  padding: .5625rem .75rem;
+}
+
+.find select {
+  flex: none;
+  border-right: 1px solid var(--line);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.find input { flex: 1 1 13rem; min-width: 0; }
+.find input::placeholder { color: var(--muted); }
+
+.find button {
+  flex: none;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme {
+  font-family: inherit;
+  font-size: .8125rem;
+  padding: .5625rem .875rem;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color .14s ease, border-color .14s ease;
+}
+
+.theme:hover { color: var(--ink); border-color: var(--ink); }
+
+/* 两栏：左标签，右面板 ------------------------------------- */
+
+.body {
+  display: grid;
+  grid-template-columns: 13.5rem minmax(0, 1fr);
+  gap: 2rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 2rem 2rem;
+  align-items: start;
+}
+
+.tablist {
+  display: flex;
+  flex-direction: column;
+  gap: .125rem;
+  position: sticky;
+  top: 1.5rem;
+}
+
+/* 必须显式写：作者样式里的 display:flex 会压过浏览器默认的
+   [hidden]{display:none}，不写的话 tablist.hidden = true 毫无效果，
+   查找时标签栏照样显示、照样能点。 */
+.tablist[hidden] { display: none; }
+
+/* 标签栏藏起来之后，.body 的两列网格会把结果区挤进
+   13.5rem 那一列。查找模式下改成单列。 */
+.body[data-mode="search"] { grid-template-columns: minmax(0, 1fr); }
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  padding: .5rem .75rem;
+  font-family: inherit;
+  font-size: .875rem;
+  text-align: left;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-left: 3px solid transparent;
+  cursor: pointer;
+  transition: color .14s ease, border-color .14s ease, background .14s ease;
+}
+
+.tab:hover { color: var(--ink); }
+
+.tab[aria-selected="true"] {
+  color: var(--accent);
+  background: var(--panel);
+  border-left-color: var(--accent);
+  font-weight: 600;
+}
+
+.tab-glyph { flex: none; width: 1.75rem; font-size: .75rem; text-align: center; }
+.tab-count { margin-left: auto; font-size: .6875rem; opacity: .75; }
+
+/* 面板 ------------------------------------------------------ */
+
+.panel { background: var(--panel); border: 1px solid var(--line); padding: 1.5rem 1.5rem 1rem; }
+.panel[hidden] { display: none; }
+
+/* 只给查找结果里堆叠的面板加间距。
+   相邻兄弟选择器不理会 display:none，写成 .panel + .panel
+   会让除第一个以外的每个标签页都多出 16px 上边距，
+   切标签时面板会跳一下。 */
+#results .panel + .panel { margin-top: 1rem; }
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  gap: .625rem;
+  padding-bottom: .75rem;
+  margin-bottom: .25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-head h2 { font-size: 1.125rem; font-weight: 700; letter-spacing: .03em; margin: 0; }
+.panel-glyph { font-size: .8125rem; color: var(--accent); }
+.tally { margin-left: auto; font-size: .75rem; color: var(--muted); }
+
+/* 条目：宽松的横排，适合「需要时来查」而不是扫视 ---------- */
+
+.item {
+  position: relative;
+  border-bottom: 1px solid var(--line);
+}
+
+.item:last-child { border-bottom: 0; }
+.item[hidden] { display: none; }
+
+.item-link { display: block; padding: .875rem 2.25rem .875rem .125rem; }
+
+.item-name { display: block; font-size: 1rem; font-weight: 600; }
+
+.item-note {
+  display: block;
+  margin-top: .125rem;
+  font-size: .8125rem;
+  color: var(--muted);
+}
+
+.item-host {
+  display: block;
+  margin-top: .25rem;
+  font-size: .6875rem;
+  color: var(--muted);
+  opacity: .72;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-link:hover .item-name,
+.item-link:focus-visible .item-name { color: var(--accent); }
+
+/* 18+ 角标走描边而非填色：这一套是临床配色，
+   不想为一个角标再引入第二个实色。 */
+.item-badge {
+  display: inline-block;
+  margin-left: .5rem;
+  padding: 0 .3125rem;
+  border: 1px solid currentColor;
+  color: var(--muted);
+  font-size: .625rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  vertical-align: .1em;
+}
+
+/* 收藏星 */
+
+.star {
+  position: absolute;
+  top: .75rem;
+  right: .125rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .14s ease, color .14s ease;
+}
+
+.item:hover .star,
+.star:focus-visible,
+.star[aria-pressed="true"] { opacity: 1; }
+
+.star:hover, .star[aria-pressed="true"] { color: var(--accent); }
+
+/* 触屏没有 hover，星标会一直全透明，收藏功能等于不存在 */
+@media (hover: none) {
+  .star { opacity: .55; }
+}
+
+/* 空结果 ---------------------------------------------------- */
+
+.empty {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  padding: 1.75rem 1.5rem;
+  font-size: .9375rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+.empty[hidden] { display: none; }
+
+/* 页脚 ------------------------------------------------------ */
+
+.foot {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.25rem 2rem 2.5rem;
+  border-top: 1px solid var(--line);
+  font-size: .75rem;
+  color: var(--muted);
+}
+
+.foot p { margin: 0 0 .375rem; }
+.foot-age { display: flex; align-items: center; gap: .5rem; color: var(--ink); }
+.foot-care { color: var(--ink); }
+
+.mark {
+  padding: .125rem .4375rem;
+  border: 1px solid currentColor;
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+/* 成人条目的点击确认 ---------------------------------------- */
+
+.ask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  /* 必须能滚：矮视口下面板会被切掉，按钮就点不着了 */
+  overflow: auto;
+  padding: 1.5rem;
+  background: rgba(10, 20, 15, .76);
+}
+
+.ask[hidden] { display: none; }
+
+.ask-panel {
+  width: 100%;
+  max-width: 26rem;
+  margin: auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--accent);
+  padding: 1.625rem 1.5rem 1.375rem;
+}
+
+.mark-row { margin: 0 0 .875rem; }
+.ask-panel h2 { font-size: 1.375rem; font-weight: 700; margin: 0 0 .5rem; }
+.ask-body { font-size: .9375rem; margin: 0 0 1.25rem; }
+.ask-body span { font-weight: 600; }
+.ask-actions { display: flex; flex-wrap: wrap; gap: .625rem; margin-bottom: .875rem; }
+
+.btn {
+  font-family: inherit;
+  font-size: .875rem;
+  font-weight: 600;
+  padding: .625rem 1.125rem;
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1px solid var(--accent);
+  cursor: pointer;
+}
+
+.btn:hover { opacity: .88; }
+
+.btn-quiet {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--line);
+  font-weight: 400;
+}
+
+.btn-quiet:hover { opacity: 1; color: var(--ink); border-color: var(--ink); }
+.ask-fine { font-size: .6875rem; color: var(--muted); margin: 0; }
+
+/* 脚本没起来时的兜底 ---------------------------------------- */
+
+.boot, .notice {
+  max-width: 26rem;
+  margin: 4rem auto;
+  padding: 1.625rem 1.5rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+/* 只藏静态的 .boot。JS 注入的提示框必须用 .notice，
+   同名的话刚创建就会被这条规则藏掉，兜底等于白写。 */
+.js-ok .boot { display: none; }
+
+.boot h2, .notice h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 .5rem; }
+.boot p, .notice p { margin: 0; font-size: .875rem; color: var(--muted); }
+.notice { margin: 0; max-width: none; }
+
+/* 窄屏：标签改横排滚动 -------------------------------------- */
+
+@media (max-width: 52rem) {
+  .masthead { padding: 1.5rem 1rem 1rem; align-items: flex-start; }
+  .tools { width: 100%; }
+  .find { flex: 1 1 auto; }
+
+  .body {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 0 1rem 1.5rem;
+  }
+
+  .tablist {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: .375rem;
+    padding-bottom: .375rem;
+  }
+
+  .tab {
+    flex: none;
+    white-space: nowrap;
+    border-left: 0;
+    border-bottom: 3px solid transparent;
+    padding: .375rem .625rem;
+  }
+
+  .tab[aria-selected="true"] {
+    border-left-color: transparent;
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-count { display: none; }
+  .panel { padding: 1.125rem 1rem .75rem; }
+  .foot { padding: 1.25rem 1rem 2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}

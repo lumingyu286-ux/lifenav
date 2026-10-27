@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>页面不存在</title>
+<meta name="robots" content="noindex">
+<!-- 样式内联，不引 style.css。
+     GitHub / GitLab Pages 的项目站挂在 /<仓库名>/ 下，404 页又会被任意
+     深度的路径触发：写 /style.css 请求到域名根，写 ./style.css 在
+     /<仓库名>/a/b/ 下解析成 /<仓库名>/a/style.css —— 两种都拿不到。
+     内联是唯一在所有平台、所有路径下都不裸奔的做法。 -->
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center;
+    background: #F2F4F0; color: #16211B;
+    font-family: "PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 34rem; margin: 0 auto; padding: 3rem 1.5rem; width: 100%; }
+  h1 { font-size: clamp(2rem,8vw,2.75rem); font-weight: 700; line-height: 1.1; margin: 0; }
+  .lede { color: #51625A; margin: .875rem 0 2rem; font-size: .9375rem; }
+  .back {
+    display: inline-block; padding: .625rem 1.125rem;
+    background: #1A6344; color: #FFFFFF; font-weight: 600; font-size: .875rem;
+    text-decoration: none;
+  }
+  .back:hover { opacity: .88; }
+  a:focus-visible { outline: 2px solid #1A6344; outline-offset: 2px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #121A15; color: #E6EBE6; }
+    .lede { color: #9FB0A4; }
+    /* 深色下强调色变亮，白字压上去只有 2.6:1，改用深字 */
+    .back { background: #5FD39B; color: #0D1A13; }
+    a:focus-visible { outline-color: #5FD39B; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>没有这一页</h1>
+  <p class="lede">404。你要找的地址在这个站上不存在。</p>
+  <!-- 默认指根目录（Cloudflare Pages 就挂在根上）。
+       ./ 不行：404 会被任意深度的路径触发，/a/b/c 下的 ./
+       只会解析到 /a/b/，还是 404。 -->
+  <a class="back" id="home" href="/">回生活健康导航</a>
+</div>
+<script>
+  /* 判断依据是「路径第一段是不是本项目的目录名」，不是主机名。
+     按主机名猜会在两种情况下出错：
+       - 仓库叫 <用户名>.github.io 时站点挂在根上，改写反而把 / 弄坏
+       - GitLab 项目站是 <namespace>.gitlab.io/<项目名>/，根本没覆盖到
+     比对目录名则四种部署形态都对：
+       /nope          → 第一段 nope ≠ lifenav → /          （Cloudflare 根站）
+       /lifenav/nope  → 第一段 lifenav        → /lifenav/  （GitHub / GitLab 项目站）
+     换仓库名或换目录名时，这里的 DIR 要一起改。 */
+  (function () {
+    var DIR = 'lifenav';
+    if (location.pathname.split('/')[1] === DIR) {
+      document.getElementById('home').href = '/' + DIR + '/';
+    }
+  })();
+</script>
+</body>
+</html>
